@@ -200,12 +200,12 @@ while True:
             if "offer" in data and data["offer"]["goldPrice"] != None and item_tier >= 8:
                 offer_gold = data["offer"]["goldPrice"] - int(item_value/2)
                 request_energy = item_info["discount"] + energy_per_sale
-                gold_to_energy_rate = offer_gold/request_energy
+                gold_to_energy_rate = int(offer_gold/request_energy)
                 gold_to_energy_rates.append({"type": item_type,
                                             "tier": item_tier,
                                              "quality": quality,
                                              "name": item_name,
-                                             "offer": offer_gold,
+                                             "offer": data["offer"]["goldPrice"],
                                              "request": request_energy,
                                              "rate": gold_to_energy_rate,
                                              "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
@@ -217,13 +217,13 @@ while True:
                 offer_energy = item_info["surcharge"] - energy_per_sale
                 request_gold = item_value*2 - data["offer"]["goldPrice"]
                 if offer_energy > 0 and request_gold > 0:
-                    energy_to_gold_rate = request_gold/offer_energy
+                    energy_to_gold_rate = int(request_gold/offer_energy)
                     energy_to_gold_rates.append({"type": item_type,
                                                 "tier": item_tier,
                                                  "quality": quality,
                                                  "name": item_name,
                                                  "offer": offer_energy,
-                                                 "request": request_gold,
+                                                 "request": data["offer"]["goldPrice"],
                                                  "rate": energy_to_gold_rate,
                                                  "offer_t": timedelta(seconds=0),
                                                  "request_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
