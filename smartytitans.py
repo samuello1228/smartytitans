@@ -66,7 +66,7 @@ for (item_name, item_data) in items_info.items():
     chinese_type = translation["texts"][chinese_type]
     item_data["chinese_type"] = chinese_type
 
-    print(chinese_type, chinese_name, item_data)
+    # print(chinese_type, chinese_name, item_data)
 
 
 def print_trade(x, Type):
@@ -252,6 +252,7 @@ while True:
             print_trade(x, "energy_glod")
         if i >= 5:
             break
+    print()
 
     gold_to_gem_rates.sort(key=lambda x: x["rate"])
     gem_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
@@ -278,7 +279,7 @@ while True:
                 print_trade(x, "gem_glod")
             if i >= 5:
                 break
+    print()
 
     # sleep
-    print()
     time.sleep(10)
