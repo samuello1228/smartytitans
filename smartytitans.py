@@ -87,9 +87,15 @@ for (item_name, item_data) in items_info.items():
 
 def print_trade(x, Type):
     Type = Type.split("_")
+
+    if x["quality"] == None:
+        chinese_quality = translation["texts"]["common_name"]
+    else:
+        chinese_quality = translation["texts"][x["quality"]+"_name"]
+
     print(x["type"], ", ",
           x["tier"], ", ",
-          x["quality"], ", ",
+          chinese_quality, ", ",
           x["name"], ": ",
           "offer_" + Type[0] + ": ", x["offer"], ", ",
           "request_" + Type[1] + ": ", x["request"], ", ",
