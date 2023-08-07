@@ -1,6 +1,5 @@
 import requests
-from datetime import datetime
-from datetime import timezone
+from datetime import datetime, timezone, timedelta
 from dateutil import parser
 
 import time
@@ -60,7 +59,6 @@ items_info = response_items.json()
 for (item_name, item_data) in items_info.items():
     if item_name + "_name" in translation["texts"]:
         chinese_name = translation["texts"][item_name + "_name"]
-        # print(item_name, item_data)
 
         if item_data["type"] in translation_type:
             chinese_type = translation_type[item_data["type"]]
@@ -72,6 +70,8 @@ for (item_name, item_data) in items_info.items():
             print("Error")
 
         item_data["chinese"] = chinese_name
+
+        # print(chinese_type, chinese_name, item_data)
     else:
         print("Error: Cannot find Chinese name for", item_name)
 
@@ -89,6 +89,12 @@ def print_trade(x, Type):
           x["request_t"].seconds//60, " mins ago)",
           sep="")
 
+
+quality_to_int = {None: 0,
+                  "uncommon": 1,
+                  "flawless": 2,
+                  "epic": 3,
+                  "legendary": 4}
 
 while True:
     # get all market data
@@ -118,25 +124,76 @@ while True:
     # find gem_to_gold_rates
     gem_to_gold_rates = []
     gold_to_gem_rates = []
-    for (key, data) in offer_request.items():
-        if "offer" not in data or "request" not in data:
-            continue
 
+    energy_per_sale = 40
+    energy_to_gold_rates = []
+    gold_to_energy_rates = []
+    for (key, data) in offer_request.items():
         (uid, quality) = key
 
-        # get chinese name
+        # get item info
         if uid in items_info:
             item_info = items_info[uid]
             item_name = item_info["chinese"]
             item_tier = item_info["tier"]
             item_type = translation_type[item_info["type"]]
 
+            # get item value
+            quality_index = quality_to_int[quality]
+            item_max_value = item_info["tradeMinMaxValue"].split(";")
+            item_max_value = item_max_value[1].split(",")
+            item_max_value = int(item_max_value[quality_index])
+            item_value = int(item_max_value/10)
+            # print(item_name, quality, item_value)
         else:
             item_name = uid
             item_tier = None
             item_type = translation_type["chest"]
 
         item_type = translation["texts"][item_type]
+
+        # gold-to-energy rate
+        if uid in items_info and \
+                item_info["type"] != "xu" and \
+                item_info["type"] != "xm" and \
+                item_info["type"] != "z" and \
+                item_info["type"] != "m":
+
+            # gold to energy rate
+            if "offer" in data and data["offer"]["goldPrice"] != None and item_tier >= 8:
+                offer_gold = data["offer"]["goldPrice"] - int(item_value/2)
+                request_energy = item_info["discount"] + energy_per_sale
+                gold_to_energy_rate = offer_gold/request_energy
+                gold_to_energy_rates.append({"type": item_type,
+                                            "tier": item_tier,
+                                             "quality": quality,
+                                             "name": item_name,
+                                             "offer": offer_gold,
+                                             "request": request_energy,
+                                             "rate": gold_to_energy_rate,
+                                             "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                             "request_t": timedelta(seconds=0)
+                                             })
+
+            # energy to gold rate
+            if "offer" in data and data["offer"]["goldPrice"] != None:
+                offer_energy = item_info["surcharge"] - energy_per_sale
+                request_gold = item_value*2 - data["offer"]["goldPrice"]
+                if offer_energy > 0 and request_gold > 0:
+                    energy_to_gold_rate = request_gold/offer_energy
+                    energy_to_gold_rates.append({"type": item_type,
+                                                "tier": item_tier,
+                                                 "quality": quality,
+                                                 "name": item_name,
+                                                 "offer": offer_energy,
+                                                 "request": request_gold,
+                                                 "rate": energy_to_gold_rate,
+                                                 "offer_t": timedelta(seconds=0),
+                                                 "request_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
+                                                 })
+
+        if "offer" not in data or "request" not in data:
+            continue
 
         # print(item_name, quality, data)
         # offer_gold < request_gold
@@ -178,6 +235,27 @@ while True:
                                       "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
                                       "request_t": datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
                                       })
+
+    gold_to_energy_rates.sort(key=lambda x: x["rate"])
+    energy_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
+
+    print("gold_to_energy_rates:")
+    for i in range(len(gold_to_energy_rates)):
+        if gold_to_energy_rates[i]["rate"] < energy_to_gold_rates[0]["rate"]:
+            x = gold_to_energy_rates[i]
+            # print(gold_to_energy_rates[i])
+            print_trade(x, "gold_energy")
+            if i >= 5:
+                break
+
+    print("energy_to_gold_rates:")
+    for i in range(len(energy_to_gold_rates)):
+        if energy_to_gold_rates[i]["rate"] > gold_to_energy_rates[0]["rate"]:
+            x = energy_to_gold_rates[i]
+            # print(energy_to_gold_rates[i])
+            print_trade(x, "energy_glod")
+        if i >= 5:
+            break
 
     gold_to_gem_rates.sort(key=lambda x: x["rate"])
     gem_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
