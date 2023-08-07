@@ -99,6 +99,27 @@ def get_item_value(item_info, quality):
     return item_value
 
 
+# request items for energy
+request_for_energy = []
+for (item_name, item_data) in items_info.items():
+    if item_data["tier"] != 10:
+        continue
+    # if item_data["excl"] != None:
+    #     continue
+    if item_data["type"] == "xu":
+        continue
+    if item_data["type"] == "xm":
+        continue
+    if item_data["type"] == "z":
+        continue
+    if item_data["type"] == "m":
+        continue
+
+    chinese_name = item_data["chinese_name"]
+    chinese_type = item_data["chinese_type"]
+    # print(chinese_type, chinese_name, item_data)
+    request_for_energy.append(item_data["uid"])
+
 while True:
     # get all market data
     response_last = requests.get("https://smartytitans.com/api/item/last/all")
@@ -279,6 +300,23 @@ while True:
                 print_trade(x, "gem_glod")
             if i >= 5:
                 break
+    print()
+
+    # request item for energy
+    for uid in request_for_energy:
+        item_info = items_info[uid]
+        item_type = item_info["chinese_type"]
+        item_tier = item_info["tier"]
+        item_name = item_info["chinese_name"]
+        item_value = get_item_value(item_info, None)
+
+        if (uid, None) in offer_request:
+            data = offer_request[(uid, None)]
+            if "request" in data and data["request"]["goldPrice"] != None:
+                if data["request"]["goldPrice"] < int(item_value/2):
+                    print(item_type, item_tier, item_name, data["request"]["goldPrice"], "<", int(item_value/2))
+        else:
+            print(item_type, item_tier, item_name)
     print()
 
     # sleep
