@@ -55,6 +55,22 @@ response_items = requests.get("https://smartytitans.com/assets/gameData/items.js
 print(response_items.status_code)
 items_info = response_items.json()
 
+# add chest items
+items_info["chest_forest"] = {'uid': "chest_forest", "type": "chest", "tier": 1}
+items_info["chest_grotto"] = {"uid": "chest_grotto", "type": "chest", "tier": 2}
+items_info["chest_swamp"] = {"uid": "chest_swamp", "type": "chest", "tier": 3}
+items_info["chest_desert"] = {"uid": "chest_desert", "type": "chest", "tier": 4}
+items_info["chest_pyramid"] = {"uid": "chest_pyramid", "type": "chest", "tier": 5}
+items_info["chest_ruins"] = {"uid": "chest_ruins", "type": "chest", "tier": 6}
+items_info["chest_castle"] = {"uid": "chest_castle", "type": "chest", "tier": 7}
+items_info["chest_temple"] = {"uid": "chest_temple", "type": "chest", "tier": 8}
+items_info["chest_peak"] = {"uid": "chest_peak", "type": "chest", "tier": 9}
+items_info["chest_volcano"] = {"uid": "chest_volcano", "type": "chest", "tier": 10}
+items_info["chest_rift"] = {"uid": "chest_rift", "type": "chest", "tier": 11}
+items_info["chest_goldcity"] = {"uid": "chest_goldcity", "type": "chest", "tier": 7}
+items_info["chest_goldcity2"] = {"uid": "chest_goldcity2", "type": "chest", "tier": 10}
+items_info["chest_goldcity3"] = {"uid": "chest_goldcity3", "type": "chest", "tier": 11}
+
 # get chinese name for each item
 for (item_name, item_data) in items_info.items():
     # chinese_name
@@ -114,6 +130,8 @@ for (item_name, item_data) in items_info.items():
         continue
     if item_data["type"] == "m":
         continue
+    if item_data["type"] == "chest":
+        continue
 
     chinese_name = item_data["chinese_name"]
     chinese_type = item_data["chinese_type"]
@@ -156,25 +174,21 @@ while True:
         (uid, quality) = key
 
         # get item info
-        if uid in items_info:
-            item_info = items_info[uid]
-            item_name = item_info["chinese_name"]
-            item_tier = item_info["tier"]
-            item_type = item_info["chinese_type"]
-            item_value = get_item_value(item_info, quality)
-            # print(item_type, item_tier, quality, item_name, item_value)
-        else:
-            item_name = uid
-            item_tier = None
-            item_type = translation_type["chest"]
-            item_type = translation["texts"][item_type]
+        item_info = items_info[uid]
+        item_name = item_info["chinese_name"]
+        item_tier = item_info["tier"]
+        item_type = item_info["chinese_type"]
+        # print(item_type, item_tier, quality, item_name)
 
         # gold-to-energy rate
         if uid in items_info and \
                 item_info["type"] != "xu" and \
                 item_info["type"] != "xm" and \
                 item_info["type"] != "z" and \
-                item_info["type"] != "m":
+                item_info["type"] != "m" and \
+                item_info["type"] != "chest":
+            # get item value
+            item_value = get_item_value(item_info, quality)
 
             # gold to energy rate
             if "offer" in data and data["offer"]["goldPrice"] != None and item_tier >= 8:
