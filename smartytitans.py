@@ -57,23 +57,16 @@ items_info = response_items.json()
 
 # get chinese name for each item
 for (item_name, item_data) in items_info.items():
-    if item_name + "_name" in translation["texts"]:
-        chinese_name = translation["texts"][item_name + "_name"]
+    # chinese_name
+    chinese_name = translation["texts"][item_name + "_name"]
+    item_data["chinese_name"] = chinese_name
 
-        if item_data["type"] in translation_type:
-            chinese_type = translation_type[item_data["type"]]
-            chinese_type = translation["texts"][chinese_type]
-        else:
-            chinese_type = None
+    # chinese_type
+    chinese_type = translation_type[item_data["type"]]
+    chinese_type = translation["texts"][chinese_type]
+    item_data["chinese_type"] = chinese_type
 
-        if item_name != item_data["uid"]:
-            print("Error")
-
-        item_data["chinese_name"] = chinese_name
-
-        # print(chinese_type, chinese_name, item_data)
-    else:
-        print("Error: Cannot find Chinese name for", item_name)
+    print(chinese_type, chinese_name, item_data)
 
 
 def print_trade(x, Type):
@@ -95,6 +88,16 @@ quality_to_int = {None: 0,
                   "flawless": 2,
                   "epic": 3,
                   "legendary": 4}
+
+
+def get_item_value(item_info, quality):
+    quality_index = quality_to_int[quality]
+    item_max_value = item_info["tradeMinMaxValue"].split(";")
+    item_max_value = item_max_value[1].split(",")
+    item_max_value = int(item_max_value[quality_index])
+    item_value = int(item_max_value/10)
+    return item_value
+
 
 while True:
     # get all market data
@@ -136,21 +139,14 @@ while True:
             item_info = items_info[uid]
             item_name = item_info["chinese_name"]
             item_tier = item_info["tier"]
-            item_type = translation_type[item_info["type"]]
-
-            # get item value
-            quality_index = quality_to_int[quality]
-            item_max_value = item_info["tradeMinMaxValue"].split(";")
-            item_max_value = item_max_value[1].split(",")
-            item_max_value = int(item_max_value[quality_index])
-            item_value = int(item_max_value/10)
-            # print(item_name, quality, item_value)
+            item_type = item_info["chinese_type"]
+            item_value = get_item_value(item_info, quality)
+            # print(item_type, item_tier, quality, item_name, item_value)
         else:
             item_name = uid
             item_tier = None
             item_type = translation_type["chest"]
-
-        item_type = translation["texts"][item_type]
+            item_type = translation["texts"][item_type]
 
         # gold-to-energy rate
         if uid in items_info and \
