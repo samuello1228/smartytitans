@@ -69,7 +69,7 @@ for (item_name, item_data) in items_info.items():
         if item_name != item_data["uid"]:
             print("Error")
 
-        item_data["chinese"] = chinese_name
+        item_data["chinese_name"] = chinese_name
 
         # print(chinese_type, chinese_name, item_data)
     else:
@@ -134,7 +134,7 @@ while True:
         # get item info
         if uid in items_info:
             item_info = items_info[uid]
-            item_name = item_info["chinese"]
+            item_name = item_info["chinese_name"]
             item_tier = item_info["tier"]
             item_type = translation_type[item_info["type"]]
 
