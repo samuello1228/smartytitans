@@ -85,9 +85,7 @@ for (item_name, item_data) in items_info.items():
     # print(chinese_type, chinese_name, item_data)
 
 
-def print_trade(x, Type):
-    Type = Type.split("_")
-
+def print_trade(x, key1, key2):
     if x["quality"] == None:
         chinese_quality = translation["texts"]["common_name"]
     else:
@@ -97,11 +95,11 @@ def print_trade(x, Type):
           x["tier"], ", ",
           chinese_quality, ", ",
           x["name"], ": ",
-          "offer_" + Type[0] + ": ", x["offer"], ", ",
-          "request_" + Type[1] + ": ", x["request"], ", ",
+          key1 + ": ", x[key1], ", ",
+          key2 + ": ", x[key2], ", ",
           "rate: ", x["rate"], " (",
-          x["offer_t"].seconds//60, ",",
-          x["request_t"].seconds//60, " mins ago)",
+          x[key1 + "_t"].seconds//60, ",",
+          x[key2 + "_t"].seconds//60, " mins ago)",
           sep="")
 
 
@@ -203,34 +201,34 @@ while True:
             # gold to energy rate
             if "offer" in data and data["offer"]["goldPrice"] != None and item_tier >= 8:
                 offer_gold = data["offer"]["goldPrice"] - int(item_value/2)
-                request_energy = item_info["discount"] + energy_per_sale
-                gold_to_energy_rate = int(offer_gold/request_energy)
+                energy_gain = item_info["discount"] + energy_per_sale
+                gold_to_energy_rate = int(offer_gold/energy_gain)
                 gold_to_energy_rates.append({"type": item_type,
                                             "tier": item_tier,
                                              "quality": quality,
                                              "name": item_name,
-                                             "offer": data["offer"]["goldPrice"],
-                                             "request": request_energy,
+                                             "offer_gold": data["offer"]["goldPrice"],
+                                             "energy_gain": energy_gain,
                                              "rate": gold_to_energy_rate,
-                                             "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
-                                             "request_t": timedelta(seconds=0)
+                                             "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                             "energy_gain_t": timedelta(seconds=0)
                                              })
 
             # energy to gold rate
-            if "offer" in data and data["offer"]["goldPrice"] != None:
-                offer_energy = item_info["surcharge"] - energy_per_sale
+            if "offer" in data and data["offer"]["goldPrice"] != None and item_tier <= 12:
+                energy_loss = item_info["surcharge"] - energy_per_sale
                 request_gold = item_value*2 - data["offer"]["goldPrice"]
-                if offer_energy > 0 and request_gold > 0:
-                    energy_to_gold_rate = int(request_gold/offer_energy)
+                if energy_loss > 0 and request_gold > 0:
+                    energy_to_gold_rate = int(request_gold/energy_loss)
                     energy_to_gold_rates.append({"type": item_type,
                                                 "tier": item_tier,
                                                  "quality": quality,
                                                  "name": item_name,
-                                                 "offer": offer_energy,
-                                                 "request": data["offer"]["goldPrice"],
+                                                 "energy_loss": energy_loss,
+                                                 "offer_gold": data["offer"]["goldPrice"],
                                                  "rate": energy_to_gold_rate,
-                                                 "offer_t": timedelta(seconds=0),
-                                                 "request_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
+                                                 "energy_loss_t": timedelta(seconds=0),
+                                                 "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
                                                  })
 
         if "offer" not in data or "request" not in data:
@@ -256,11 +254,11 @@ while True:
                                       "tier": item_tier,
                                       "quality": quality,
                                       "name": item_name,
-                                      "offer": data["offer"]["goldPrice"],
-                                      "request": data["request"]["gemsPrice"],
+                                      "offer_gold": data["offer"]["goldPrice"],
+                                      "request_gems": data["request"]["gemsPrice"],
                                       "rate": gold_to_gem_rate,
-                                      "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
-                                      "request_t": datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
+                                      "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                      "request_gems_t": datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
                                       })
 
         # gem to gold rate
@@ -270,11 +268,11 @@ while True:
                                       "tier": item_tier,
                                       "quality": quality,
                                       "name": item_name,
-                                      "offer": data["offer"]["gemsPrice"],
-                                      "request": data["request"]["goldPrice"],
+                                      "offer_gems": data["offer"]["gemsPrice"],
+                                      "request_gold": data["request"]["goldPrice"],
                                       "rate": gem_to_gold_rate,
-                                      "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
-                                      "request_t": datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
+                                      "offer_gems_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                      "request_gold_t": datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
                                       })
 
     gold_to_energy_rates.sort(key=lambda x: x["rate"])
@@ -285,7 +283,7 @@ while True:
         if gold_to_energy_rates[i]["rate"] < energy_to_gold_rates[0]["rate"]:
             x = gold_to_energy_rates[i]
             # print(gold_to_energy_rates[i])
-            print_trade(x, "gold_energy")
+            print_trade(x, "offer_gold", "energy_gain")
             if i >= 5:
                 break
 
@@ -294,7 +292,7 @@ while True:
         if energy_to_gold_rates[i]["rate"] > gold_to_energy_rates[0]["rate"]:
             x = energy_to_gold_rates[i]
             # print(energy_to_gold_rates[i])
-            print_trade(x, "energy_glod")
+            print_trade(x, "energy_loss", "offer_gold")
         if i >= 5:
             break
     print()
@@ -304,15 +302,15 @@ while True:
 
     if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
         print("No gem_to_gold is found.")
-        print_trade(gem_to_gold_rates[0], "gem_glod")
-        print_trade(gold_to_gem_rates[0], "gold_gem")
+        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold")
+        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems")
     else:
         print("gold_to_gem_rates:")
         for i in range(len(gold_to_gem_rates)):
             if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
                 x = gold_to_gem_rates[i]
                 # print(gold_to_gem_rates[i])
-                print_trade(x, "gold_gem")
+                print_trade(x, "offer_gold", "request_gems")
             if i >= 5:
                 break
 
@@ -321,7 +319,7 @@ while True:
             if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
                 x = gem_to_gold_rates[i]
                 # print(gem_to_gold_rates[i])
-                print_trade(x, "gem_glod")
+                print_trade(x, "offer_gems", "request_gold")
             if i >= 5:
                 break
     print()
