@@ -180,6 +180,10 @@ while True:
         (uid, quality) = key
 
         # get item info
+        if uid not in items_info:
+            print("uid \"", uid, "\" is not found in the file \"items.json\".", sep="")
+            continue
+
         item_info = items_info[uid]
         item_name = item_info["chinese_name"]
         item_tier = item_info["tier"]
@@ -323,6 +327,7 @@ while True:
     print()
 
     # request item for energy
+    print("request items for energy:")
     for uid in request_for_energy:
         item_info = items_info[uid]
         item_type = item_info["chinese_type"]
