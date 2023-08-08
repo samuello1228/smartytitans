@@ -167,11 +167,14 @@ while True:
         elif item_last["tType"] == "r" or item_last["tType"] == "rs":
             offer_request[key]["request"] = item_last
 
+    # player info
+    energy_per_sale = 40
+    surcharge_tier = 12
+
     # find gem_to_gold_rates
     gem_to_gold_rates = []
     gold_to_gem_rates = []
 
-    energy_per_sale = 40
     energy_to_gold_rates = []
     gold_to_energy_rates = []
     for (key, data) in offer_request.items():
@@ -215,7 +218,7 @@ while True:
                                              })
 
             # energy to gold rate
-            if "offer" in data and data["offer"]["goldPrice"] != None and item_tier <= 12:
+            if "offer" in data and data["offer"]["goldPrice"] != None and item_tier <= surcharge_tier:
                 energy_loss = item_info["surcharge"] - energy_per_sale
                 request_gold = item_value*2 - data["offer"]["goldPrice"]
                 if energy_loss > 0 and request_gold > 0:
