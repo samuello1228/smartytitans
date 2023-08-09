@@ -193,24 +193,23 @@ while True:
             continue
 
         item_info = items_info[uid]
-        item_name = item_info["chinese_name"]
-        item_tier = item_info["tier"]
         item_type = item_info["chinese_type"]
+        item_tier = item_info["tier"]
         chinese_quality = data["chinese_quality"]
+        item_name = item_info["chinese_name"]
         # print(item_type, item_tier, chinese_quality, item_name)
 
         # offer-energy pair
-        if uid in items_info and \
-                item_info["type"] != "xu" and \
-                item_info["type"] != "xm" and \
-                item_info["type"] != "z" and \
-                item_info["type"] != "m" and \
-                item_info["type"] != "chest":
+        if item_info["type"] != "xu" and \
+           item_info["type"] != "xm" and \
+           item_info["type"] != "z" and \
+           item_info["type"] != "m" and \
+           item_info["type"] != "chest":
             # get item value
             item_value = get_item_value(item_info, quality)
 
             # offer-energy pair
-            if "offer" in data and (data["offer"]["goldPrice"] != None or data["offer"]["gemsPrice"] != None):
+            if "offer" in data:
                 # calculate offer and offer_value
                 if data["offer"]["gemsPrice"] == None:
                     # only gold offer
