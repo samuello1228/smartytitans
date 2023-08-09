@@ -141,6 +141,11 @@ for (item_name, item_data) in items_info.items():
     # print(chinese_type, chinese_name, item_data)
     request_for_energy.append(item_data["uid"])
 
+
+def gold_energy_rate(x, y):
+    return (y["gold_gain"]*x["energy_gain"] - x["gold_loss"]*y["energy_loss"])/(x["energy_gain"] + y["energy_loss"])
+
+
 while True:
     # get all market data
     response_last = requests.get("https://smartytitans.com/api/item/last/all")
@@ -170,8 +175,8 @@ while True:
     gem_to_gold_rates = []
     gold_to_gem_rates = []
 
-    energy_to_gold_rates = []
-    gold_to_energy_rates = []
+    energy_to_gold = []
+    gold_to_energy = []
     for (key, data) in offer_request.items():
         (uid, quality) = key
 
@@ -202,38 +207,36 @@ while True:
             # get item value
             item_value = get_item_value(item_info, quality)
 
-            # gold to energy rate
-            if "offer" in data and data["offer"]["goldPrice"] != None and item_tier >= 8:
-                offer_gold = data["offer"]["goldPrice"] - int(item_value/2)
+            # gold to energy
+            if "offer" in data and data["offer"]["goldPrice"] != None:
+                gold_loss = data["offer"]["goldPrice"] - int(item_value/2)
                 energy_gain = item_info["discount"] + energy_per_sale
-                gold_to_energy_rate = int(offer_gold/energy_gain)
-                gold_to_energy_rates.append({"type": item_type,
-                                            "tier": item_tier,
-                                             "quality": chinese_quality,
-                                             "name": item_name,
-                                             "offer_gold": data["offer"]["goldPrice"],
-                                             "energy_gain": energy_gain,
-                                             "rate": gold_to_energy_rate,
-                                             "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
-                                             "energy_gain_t": timedelta(seconds=0)
-                                             })
+                gold_to_energy.append({"type": item_type,
+                                       "tier": item_tier,
+                                       "quality": chinese_quality,
+                                       "name": item_name,
+                                       "gold_loss": gold_loss,
+                                       "energy_gain": energy_gain,
+                                       "offer_gold": data["offer"]["goldPrice"],
+                                       "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                       "energy_gain_t": timedelta(seconds=0)
+                                       })
 
-            # energy to gold rate
+            # energy to gold
             if "offer" in data and data["offer"]["goldPrice"] != None and item_tier <= surcharge_tier:
                 energy_loss = item_info["surcharge"] - energy_per_sale
-                request_gold = item_value*2 - data["offer"]["goldPrice"]
-                if energy_loss > 0 and request_gold > 0:
-                    energy_to_gold_rate = int(request_gold/energy_loss)
-                    energy_to_gold_rates.append({"type": item_type,
-                                                "tier": item_tier,
-                                                 "quality": chinese_quality,
-                                                 "name": item_name,
-                                                 "energy_loss": energy_loss,
-                                                 "offer_gold": data["offer"]["goldPrice"],
-                                                 "rate": energy_to_gold_rate,
-                                                 "energy_loss_t": timedelta(seconds=0),
-                                                 "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
-                                                 })
+                gold_gain = item_value*2 - data["offer"]["goldPrice"]
+                if energy_loss > 0 and gold_gain > 0:
+                    energy_to_gold.append({"type": item_type,
+                                           "tier": item_tier,
+                                           "quality": chinese_quality,
+                                           "name": item_name,
+                                           "energy_loss": energy_loss,
+                                           "gold_gain": gold_gain,
+                                           "offer_gold": data["offer"]["goldPrice"],
+                                           "offer_gold_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                           "energy_loss_t": timedelta(seconds=0)
+                                           })
 
         if "offer" not in data or "request" not in data:
             continue
@@ -278,28 +281,64 @@ while True:
                                       "request_gold_t": datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
                                       })
 
-    gold_to_energy_rates.sort(key=lambda x: x["rate"])
-    energy_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
+    # gold-energy pair
+    gold_energy_pair = []
+    for discount in gold_to_energy:
+        for surcharge in energy_to_gold:
+            rate = gold_energy_rate(discount, surcharge)
+            gold_energy_pair.append({"discount": discount,
+                                     "surcharge": surcharge,
+                                     "rate": rate,
+                                     })
+    gold_energy_pair.sort(key=lambda x: x["rate"], reverse=True)
 
-    print("gold_to_energy_rates:")
-    for i in range(len(gold_to_energy_rates)):
-        if gold_to_energy_rates[i]["rate"] < energy_to_gold_rates[0]["rate"]:
-            x = gold_to_energy_rates[i]
-            # print(gold_to_energy_rates[i])
-            print_trade(x, "offer_gold", "energy_gain")
-            if i >= 5:
-                break
+    print("gold-to-energy:")
+    for i in range(len(gold_energy_pair)):
+        if i >= 1:
+            break
 
-    print("energy_to_gold_rates:")
-    for i in range(len(energy_to_gold_rates)):
-        if energy_to_gold_rates[i]["rate"] > gold_to_energy_rates[0]["rate"]:
-            x = energy_to_gold_rates[i]
-            # print(energy_to_gold_rates[i])
-            print_trade(x, "energy_loss", "offer_gold")
+        x = gold_energy_pair[i]
+        print("rate: ", int(x["rate"]), ": ",
+              x["discount"]["type"], ", ",
+              x["discount"]["tier"], ", ",
+              x["discount"]["quality"], ", ",
+              x["discount"]["name"], ", ",
+              x["discount"]["offer_gold"], "; ",
+
+              x["surcharge"]["type"], ", ",
+              x["surcharge"]["tier"], ", ",
+              x["surcharge"]["quality"], ", ",
+              x["surcharge"]["name"], ", ",
+              x["surcharge"]["offer_gold"], " (",
+
+              x["discount"]["offer_gold_t"].seconds//60, ",",
+              x["surcharge"]["offer_gold_t"].seconds//60, " mins ago)",
+              sep="")
+
+    print("gold_to_energy:")
+    for discount in gold_to_energy:
+        discount["rate"] = int(gold_energy_rate(discount, gold_energy_pair[0]["surcharge"]))
+    gold_to_energy.sort(key=lambda x: x["rate"], reverse=True)
+
+    for i in range(len(gold_to_energy)):
+        x = gold_to_energy[i]
+        print_trade(x, "offer_gold", "energy_gain")
+        if i >= 5:
+            break
+
+    print("energy_to_gold:")
+    for surcharge in energy_to_gold:
+        surcharge["rate"] = int(gold_energy_rate(gold_energy_pair[0]["discount"], surcharge))
+    energy_to_gold.sort(key=lambda x: x["rate"], reverse=True)
+
+    for i in range(len(energy_to_gold)):
+        x = energy_to_gold[i]
+        print_trade(x, "offer_gold", "energy_loss")
         if i >= 5:
             break
     print()
 
+    # gold-to-gem rates
     gold_to_gem_rates.sort(key=lambda x: x["rate"])
     gem_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
 
