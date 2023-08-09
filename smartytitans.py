@@ -248,6 +248,20 @@ while True:
                         offer = data["offer"]["gemsPrice"]
                         offer_value = offer_gems_value
 
+                # normal sell
+                currency_change = item_value - offer_value
+                energy_change = energy_per_sale
+                offer_energy_list.append({"selling_type": "normal sell",
+                                          "type": item_type,
+                                          "tier": item_tier,
+                                          "quality": chinese_quality,
+                                          "name": item_name,
+                                          "currency_change": currency_change,
+                                          "energy_change": energy_change,
+                                          "offer": offer,
+                                          "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
+                                          })
+
                 # discount
                 currency_change = int(item_value/2) - offer_value
                 energy_change = item_info["discount"] + energy_per_sale
@@ -329,7 +343,7 @@ while True:
     for x in offer_energy_list:
         # energy_gain
         if x["energy_change"] > 0:
-            x["energy_change_t"] = timedelta(seconds=0)
+            x["selling_type_t"] = timedelta(seconds=0)
             x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
             energy_gain_list.append(x)
 
@@ -338,7 +352,7 @@ while True:
 
         # energy_loss
         if x["energy_change"] < 0 and x["currency_change"] > 0:
-            x["energy_change_t"] = timedelta(seconds=0)
+            x["selling_type_t"] = timedelta(seconds=0)
             x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
             energy_loss_list.append(x)
 
@@ -391,7 +405,7 @@ while True:
 
     for i in range(len(energy_gain_list)):
         x = energy_gain_list[i]
-        print_trade(x, "offer", "energy_change")
+        print_trade(x, "offer", "selling_type")
         if i >= 5:
             break
 
@@ -402,7 +416,7 @@ while True:
 
     for i in range(len(energy_loss_list)):
         x = energy_loss_list[i]
-        print_trade(x, "offer", "energy_change")
+        print_trade(x, "offer", "selling_type")
         if i >= 10:
             break
     print()
