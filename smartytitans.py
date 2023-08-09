@@ -240,7 +240,8 @@ while True:
                                         "energy_gain": energy_gain,
                                         "offer": offer,
                                         "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
-                                        "energy_gain_t": timedelta(seconds=0)
+                                        "energy_gain_t": timedelta(seconds=0),
+                                        "rate": int(offer_loss/energy_gain)
                                         })
 
                 # surcharge
@@ -256,7 +257,8 @@ while True:
                                                 "offer_gain": offer_gain,
                                                 "offer": offer,
                                                 "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"]),
-                                                "energy_loss_t": timedelta(seconds=0)
+                                                "energy_loss_t": timedelta(seconds=0),
+                                                "rate": int(offer_gain/energy_loss)
                                                 })
 
         if "offer" not in data or "request" not in data:
@@ -314,6 +316,10 @@ while True:
     offer_energy_pair.sort(key=lambda x: x["rate"], reverse=True)
 
     print("offer-to-energy:")
+    offer_to_energy_rate = offer_energy_pair[0]["discount"]["rate"]
+    energy_to_offer_rate = offer_energy_pair[0]["surcharge"]["rate"]
+    print("offer_to_energy_rate:", offer_to_energy_rate)
+    print("energy_to_offer_rate:", energy_to_offer_rate)
     for i in range(len(offer_energy_pair)):
         if i >= 1:
             break
@@ -325,12 +331,14 @@ while True:
               x["discount"]["quality"], ", ",
               x["discount"]["name"], ", ",
               x["discount"]["offer"], "; ",
+              x["discount"]["rate"], "; ",
 
               x["surcharge"]["type"], ", ",
               x["surcharge"]["tier"], ", ",
               x["surcharge"]["quality"], ", ",
               x["surcharge"]["name"], ", ",
-              x["surcharge"]["offer"], " (",
+              x["surcharge"]["offer"], ", ",
+              x["surcharge"]["rate"], " (",
 
               x["discount"]["offer_t"].seconds//60, ",",
               x["surcharge"]["offer_t"].seconds//60, " mins ago)",
