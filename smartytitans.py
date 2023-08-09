@@ -337,7 +337,7 @@ while True:
             offer_energy_list.append(trade)
 
             # surcharge
-            if item_tier <= surcharge_tier:
+            if item_info["tier"] <= surcharge_tier:
                 trade = copy.deepcopy(template)
                 trade["selling_type"] = "surcharge"
                 trade["currency_change"] = item_value*2 - offer_value
