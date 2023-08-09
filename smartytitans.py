@@ -279,77 +279,71 @@ while True:
     offer_energy_list = []
     gold_to_gem_rate_estimated = 4000000
     for (key, data) in offer_request.items():
-        (uid, quality) = key
-
-        # get item info
-        if uid not in items_info:
+        if "offer" not in data:
             continue
 
+        # get item info
+        (uid, quality) = key
         item_info = items_info[uid]
-        item_type = item_info["chinese_type"]
-        item_tier = item_info["tier"]
-        chinese_quality = data["chinese_quality"]
-        item_name = item_info["chinese_name"]
-        # print(item_type, item_tier, chinese_quality, item_name)
 
         if item_info["type"] != "xu" and \
-                item_info["type"] != "xm" and \
-                item_info["type"] != "z" and \
-                item_info["type"] != "m" and \
-                item_info["type"] != "chest":
+           item_info["type"] != "xm" and \
+           item_info["type"] != "z" and \
+           item_info["type"] != "m" and \
+           item_info["type"] != "chest":
+
+            # calculate offer and offer_value
+            if data["offer"]["gemsPrice"] == None:
+                # only gold offer
+                offer = data["offer"]["goldPrice"]
+                offer_value = data["offer"]["goldPrice"]
+            elif data["offer"]["goldPrice"] == None:
+                # only gems offer
+                offer = data["offer"]["gemsPrice"]
+                offer_value = data["offer"]["gemsPrice"] * gold_to_gem_rate_estimated
+            else:
+                # both gold and gems offer
+                offer_gems_value = data["offer"]["gemsPrice"] * gold_to_gem_rate_estimated
+                if data["offer"]["goldPrice"] <= offer_gems_value:
+                    offer = data["offer"]["goldPrice"]
+                    offer_value = data["offer"]["goldPrice"]
+                else:
+                    offer = data["offer"]["gemsPrice"]
+                    offer_value = offer_gems_value
+
+            template = {"type": item_info["chinese_type"],
+                        "tier": item_info["tier"],
+                        "quality": data["chinese_quality"],
+                        "name": item_info["chinese_name"],
+                        "offer": offer,
+                        "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
+                        }
+            # print(template)
+
             # get item value
             item_value = get_item_value(item_info, quality)
 
-            # offer-energy pair
-            if "offer" in data:
-                # calculate offer and offer_value
-                if data["offer"]["gemsPrice"] == None:
-                    # only gold offer
-                    offer = data["offer"]["goldPrice"]
-                    offer_value = data["offer"]["goldPrice"]
-                elif data["offer"]["goldPrice"] == None:
-                    # only gems offer
-                    offer = data["offer"]["gemsPrice"]
-                    offer_value = data["offer"]["gemsPrice"] * gold_to_gem_rate_estimated
-                else:
-                    # both gold and gems offer
-                    offer_gems_value = data["offer"]["gemsPrice"] * gold_to_gem_rate_estimated
-                    if data["offer"]["goldPrice"] <= offer_gems_value:
-                        offer = data["offer"]["goldPrice"]
-                        offer_value = data["offer"]["goldPrice"]
-                    else:
-                        offer = data["offer"]["gemsPrice"]
-                        offer_value = offer_gems_value
+            # normal sell
+            trade = copy.deepcopy(template)
+            trade["selling_type"] = "normal sell"
+            trade["currency_change"] = item_value - offer_value
+            trade["energy_change"] = energy_per_sale
+            offer_energy_list.append(trade)
 
-                template = {"type": item_type,
-                            "tier": item_tier,
-                            "quality": chinese_quality,
-                            "name": item_name,
-                            "offer": offer,
-                            "offer_t": datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
-                            }
+            # discount
+            trade = copy.deepcopy(template)
+            trade["selling_type"] = "discount"
+            trade["currency_change"] = int(item_value/2) - offer_value
+            trade["energy_change"] = item_info["discount"] + energy_per_sale
+            offer_energy_list.append(trade)
 
-                # normal sell
+            # surcharge
+            if item_tier <= surcharge_tier:
                 trade = copy.deepcopy(template)
-                trade["selling_type"] = "normal sell"
-                trade["currency_change"] = item_value - offer_value
-                trade["energy_change"] = energy_per_sale
+                trade["selling_type"] = "surcharge"
+                trade["currency_change"] = item_value*2 - offer_value
+                trade["energy_change"] = -item_info["surcharge"] + energy_per_sale
                 offer_energy_list.append(trade)
-
-                # discount
-                trade = copy.deepcopy(template)
-                trade["selling_type"] = "discount"
-                trade["currency_change"] = int(item_value/2) - offer_value
-                trade["energy_change"] = item_info["discount"] + energy_per_sale
-                offer_energy_list.append(trade)
-
-                # surcharge
-                if item_tier <= surcharge_tier:
-                    trade = copy.deepcopy(template)
-                    trade["selling_type"] = "surcharge"
-                    trade["currency_change"] = item_value*2 - offer_value
-                    trade["energy_change"] = -item_info["surcharge"] + energy_per_sale
-                    offer_energy_list.append(trade)
 
     # divide offer_energy_list into two lists
     energy_loss_list = []
