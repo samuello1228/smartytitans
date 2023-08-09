@@ -90,14 +90,9 @@ surcharge_tier = 12
 
 
 def print_trade(x, key1, key2):
-    if x["quality"] == None:
-        chinese_quality = translation["texts"]["common_name"]
-    else:
-        chinese_quality = translation["texts"][x["quality"]+"_name"]
-
     print(x["type"], ", ",
           x["tier"], ", ",
-          chinese_quality, ", ",
+          x["quality"], ", ",
           x["name"], ": ",
           key1 + ": ", x[key1], ", ",
           key2 + ": ", x[key2], ", ",
@@ -189,7 +184,13 @@ while True:
         item_name = item_info["chinese_name"]
         item_tier = item_info["tier"]
         item_type = item_info["chinese_type"]
-        # print(item_type, item_tier, quality, item_name)
+
+        # chinese_quality
+        if quality == None:
+            chinese_quality = translation["texts"]["common_name"]
+        else:
+            chinese_quality = translation["texts"][quality + "_name"]
+        # print(item_type, item_tier, chinese_quality, item_name)
 
         # gold-to-energy rate
         if uid in items_info and \
@@ -208,7 +209,7 @@ while True:
                 gold_to_energy_rate = int(offer_gold/energy_gain)
                 gold_to_energy_rates.append({"type": item_type,
                                             "tier": item_tier,
-                                             "quality": quality,
+                                             "quality": chinese_quality,
                                              "name": item_name,
                                              "offer_gold": data["offer"]["goldPrice"],
                                              "energy_gain": energy_gain,
@@ -225,7 +226,7 @@ while True:
                     energy_to_gold_rate = int(request_gold/energy_loss)
                     energy_to_gold_rates.append({"type": item_type,
                                                 "tier": item_tier,
-                                                 "quality": quality,
+                                                 "quality": chinese_quality,
                                                  "name": item_name,
                                                  "energy_loss": energy_loss,
                                                  "offer_gold": data["offer"]["goldPrice"],
@@ -237,17 +238,16 @@ while True:
         if "offer" not in data or "request" not in data:
             continue
 
-        # print(item_name, quality, data)
         # offer_gold < request_gold
         if data["offer"]["goldPrice"] != None and data["request"]["goldPrice"] != None:
             if data["offer"]["goldPrice"] < data["request"]["goldPrice"]:
-                # print("offer_gold < request_gold:", item_name, quality, data)
+                # print("offer_gold < request_gold:", item_name, chinese_quality, data)
                 pass
 
         # offer_gems < request_gems
         if data["offer"]["gemsPrice"] != None and data["request"]["gemsPrice"] != None:
             if data["offer"]["gemsPrice"] < data["request"]["gemsPrice"]:
-                # print("offer_gems < request_gems:", item_name, quality, data)
+                # print("offer_gems < request_gems:", item_name, chinese_quality, data)
                 pass
 
         # gold to gem rate
@@ -255,7 +255,7 @@ while True:
             gold_to_gem_rate = int(data["offer"]["goldPrice"]/data["request"]["gemsPrice"])
             gold_to_gem_rates.append({"type": item_type,
                                       "tier": item_tier,
-                                      "quality": quality,
+                                      "quality": chinese_quality,
                                       "name": item_name,
                                       "offer_gold": data["offer"]["goldPrice"],
                                       "request_gems": data["request"]["gemsPrice"],
@@ -269,7 +269,7 @@ while True:
             gem_to_gold_rate = int(data["request"]["goldPrice"]/data["offer"]["gemsPrice"])
             gem_to_gold_rates.append({"type": item_type,
                                       "tier": item_tier,
-                                      "quality": quality,
+                                      "quality": chinese_quality,
                                       "name": item_name,
                                       "offer_gems": data["offer"]["gemsPrice"],
                                       "request_gold": data["request"]["goldPrice"],
