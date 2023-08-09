@@ -165,6 +165,12 @@ while True:
         if item_last['gemsQty'] == 0:
             item_last['gemsPrice'] = None
 
+        # set chinese_quality
+        if item_last["tag1"] == None:
+            offer_request[key]["chinese_quality"] = translation["texts"]["common_name"]
+        else:
+            offer_request[key]["chinese_quality"] = translation["texts"][item_last["tag1"] + "_name"]
+
         # grouping
         if item_last["tType"] == "o" or item_last["tType"] == "os":
             offer_request[key]["offer"] = item_last
@@ -190,12 +196,7 @@ while True:
         item_name = item_info["chinese_name"]
         item_tier = item_info["tier"]
         item_type = item_info["chinese_type"]
-
-        # chinese_quality
-        if quality == None:
-            chinese_quality = translation["texts"]["common_name"]
-        else:
-            chinese_quality = translation["texts"][quality + "_name"]
+        chinese_quality = data["chinese_quality"]
         # print(item_type, item_tier, chinese_quality, item_name)
 
         # offer-energy pair
