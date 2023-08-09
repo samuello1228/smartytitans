@@ -291,7 +291,6 @@ while True:
            item_info["type"] != "z" and \
            item_info["type"] != "m" and \
            item_info["type"] != "chest":
-
             # calculate offer and offer_value
             if data["offer"]["gemsPrice"] == None:
                 # only gold offer
