@@ -84,6 +84,10 @@ for (item_name, item_data) in items_info.items():
 
     # print(chinese_type, chinese_name, item_data)
 
+# player info
+energy_per_sale = 40
+surcharge_tier = 12
+
 
 def print_trade(x, key1, key2):
     if x["quality"] == None:
@@ -167,10 +171,6 @@ while True:
         elif item_last["tType"] == "r" or item_last["tType"] == "rs":
             offer_request[key]["request"] = item_last
 
-    # player info
-    energy_per_sale = 40
-    surcharge_tier = 12
-
     # find gem_to_gold_rates
     gem_to_gold_rates = []
     gold_to_gem_rates = []
@@ -182,7 +182,7 @@ while True:
 
         # get item info
         if uid not in items_info:
-            print("uid \"", uid, "\" is not found in the file \"items.json\".", sep="")
+            # print("uid \"", uid, "\" is not found in the file \"items.json\".", sep="")
             continue
 
         item_info = items_info[uid]
