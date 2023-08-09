@@ -176,6 +176,9 @@ while True:
     # group market data by item
     offer_request = {}
     for item_last in items_last["data"]:
+        if item_last["uid"] not in items_info:
+            continue
+
         key = (item_last["uid"], item_last["tag1"])
         if key not in offer_request:
             offer_request[key] = {}
@@ -205,17 +208,15 @@ while True:
         if "offer" not in data or "request" not in data:
             continue
 
-        (uid, quality) = key
         # get item info
-        if uid not in items_info:
-            continue
-
+        (uid, quality) = key
         item_info = items_info[uid]
-        item_type = item_info["chinese_type"]
-        item_tier = item_info["tier"]
-        chinese_quality = data["chinese_quality"]
-        item_name = item_info["chinese_name"]
-        # print(item_type, item_tier, chinese_quality, item_name)
+        template = {"type": item_info["chinese_type"],
+                    "tier": item_info["tier"],
+                    "quality": data["chinese_quality"],
+                    "name": item_info["chinese_name"]
+                    }
+        # print(template)
 
         # offer_gold < request_gold
         if data["offer"]["goldPrice"] != None and data["request"]["goldPrice"] != None:
@@ -228,12 +229,6 @@ while True:
             if data["offer"]["gemsPrice"] < data["request"]["gemsPrice"]:
                 # print("offer_gems < request_gems:", item_name, chinese_quality, data)
                 pass
-
-        template = {"type": item_type,
-                    "tier": item_tier,
-                    "quality": chinese_quality,
-                    "name": item_name
-                    }
 
         # gold to gem rate
         if data["offer"]["goldPrice"] != None and data["request"]["gemsPrice"] != None:
@@ -267,7 +262,6 @@ while True:
         for i in range(len(gold_to_gem_rates)):
             if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
                 x = gold_to_gem_rates[i]
-                # print(gold_to_gem_rates[i])
                 print_trade(x, "offer_gold", "request_gems")
             if i >= 5:
                 break
@@ -276,7 +270,6 @@ while True:
         for i in range(len(gem_to_gold_rates)):
             if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
                 x = gem_to_gold_rates[i]
-                # print(gem_to_gold_rates[i])
                 print_trade(x, "offer_gems", "request_gold")
             if i >= 5:
                 break
