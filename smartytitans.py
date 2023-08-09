@@ -143,7 +143,7 @@ for (item_name, item_data) in items_info.items():
 
 
 def offer_energy_rate(x, y):
-    return (y["offer_gain"]*x["energy_gain"] - x["offer_loss"]*y["energy_loss"])/(x["energy_gain"] + y["energy_loss"])
+    return (y["currency_change"]*x["energy_change"] - x["currency_change"]*y["energy_change"])/(x["energy_change"] - y["energy_change"])
 
 
 def compare_gold_energy(x, y, gold_change, energy_change):
@@ -320,37 +320,15 @@ while True:
     for x in offer_energy_list:
         # energy_gain
         if x["energy_change"] > 0:
-            energy_gain = x["energy_change"]
-            offer_loss = -x["currency_change"]
-            energy_gain_list.append({"selling_type": x["selling_type"],
-                                     "type": x["type"],
-                                     "tier": x["tier"],
-                                     "quality": x["quality"],
-                                     "name": x["name"],
-                                     "offer_loss": offer_loss,
-                                     "energy_gain": energy_gain,
-                                     "offer": x["offer"],
-                                     "offer_t": x["offer_t"],
-                                     "energy_gain_t": timedelta(seconds=0),
-                                     "energy_rate": int(offer_loss/energy_gain)
-                                     })
+            x["energy_change_t"] = timedelta(seconds=0)
+            x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
+            energy_gain_list.append(x)
 
         # energy_loss
         if x["energy_change"] < 0 and x["currency_change"] > 0:
-            energy_loss = -x["energy_change"]
-            offer_gain = x["currency_change"]
-            energy_loss_list.append({"selling_type": x["selling_type"],
-                                     "type": x["type"],
-                                     "tier": x["tier"],
-                                     "quality": x["quality"],
-                                     "name": x["name"],
-                                     "energy_loss": energy_loss,
-                                     "offer_gain": offer_gain,
-                                     "offer": x["offer"],
-                                     "offer_t": x["offer_t"],
-                                     "energy_loss_t": timedelta(seconds=0),
-                                     "energy_rate": int(offer_gain/energy_loss)
-                                     })
+            x["energy_change_t"] = timedelta(seconds=0)
+            x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
+            energy_loss_list.append(x)
 
     offer_energy_pair = []
     for energy_gain in energy_gain_list:
@@ -398,7 +376,7 @@ while True:
 
     for i in range(len(energy_gain_list)):
         x = energy_gain_list[i]
-        print_trade(x, "offer", "energy_gain")
+        print_trade(x, "offer", "energy_change")
         if i >= 5:
             break
 
@@ -409,7 +387,7 @@ while True:
 
     for i in range(len(energy_loss_list)):
         x = energy_loss_list[i]
-        print_trade(x, "offer", "energy_loss")
+        print_trade(x, "offer", "energy_change")
         if i >= 10:
             break
     print()
