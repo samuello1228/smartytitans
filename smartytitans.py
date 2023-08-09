@@ -146,6 +146,19 @@ def offer_energy_rate(x, y):
     return (y["offer_gain"]*x["energy_gain"] - x["offer_loss"]*y["energy_loss"])/(x["energy_gain"] + y["energy_loss"])
 
 
+def compare_gold_energy(x, y, gold_change, energy_change):
+    if x[gold_change] > y[gold_change] and x[energy_change] > y[energy_change] or \
+       x[gold_change] > y[gold_change] and x[energy_change] == y[energy_change] or \
+       x[gold_change] == y[gold_change] and x[energy_change] > y[energy_change]:
+        return 1
+    elif x[gold_change] < y[gold_change] and x[energy_change] < y[energy_change] or \
+            x[gold_change] < y[gold_change] and x[energy_change] == y[energy_change] or \
+            x[gold_change] == y[gold_change] and x[energy_change] < y[energy_change]:
+        return -1
+    else:
+        return 0
+
+
 while True:
     # get all market data
     response_last = requests.get("https://smartytitans.com/api/item/last/all")
