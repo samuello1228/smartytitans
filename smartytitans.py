@@ -183,7 +183,7 @@ while True:
 
     energy_to_offer = []
     offer_to_energy = []
-    gold_to_gem_rate_estimated = 4e6
+    gold_to_gem_rate_estimated = 4000000
     for (key, data) in offer_request.items():
         (uid, quality) = key
 
@@ -355,7 +355,7 @@ while True:
     for i in range(len(energy_to_offer)):
         x = energy_to_offer[i]
         print_trade(x, "offer", "energy_loss")
-        if i >= 5:
+        if i >= 10:
             break
     print()
 
