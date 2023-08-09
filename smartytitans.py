@@ -327,24 +327,26 @@ while True:
     energy_loss_boundary = []
     energy_gain_boundary = []
     for x in offer_energy_list:
+        if x["energy_change"] == 0:
+            continue
+
+        x["selling_type_t"] = timedelta(seconds=0)
+        x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
+
         # energy_gain
         if x["energy_change"] > 0:
-            x["selling_type_t"] = timedelta(seconds=0)
-            x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
             energy_gain_list.append(x)
-
             if insert(energy_gain_boundary, x):
                 energy_gain_boundary.append(x)
 
         # energy_loss
         if x["energy_change"] < 0 and x["currency_change"] > 0:
-            x["selling_type_t"] = timedelta(seconds=0)
-            x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
             energy_loss_list.append(x)
-
             if insert(energy_loss_boundary, x):
                 energy_loss_boundary.append(x)
 
+    # try all possible pairs of energy_gain and energy_loss
+    # find maximum rate
     offer_energy_pair = []
     for energy_gain in energy_gain_boundary:
         for energy_loss in energy_loss_boundary:
@@ -384,22 +386,24 @@ while True:
               x["energy_loss"]["offer_t"].seconds//60, " mins ago)",
               sep="")
 
-    print("offer_to_energy:")
+    # calculate rates for all energy_gain
     for energy_gain in energy_gain_list:
         energy_gain["rate"] = int(offer_energy_rate(energy_gain, offer_energy_pair[0]["energy_loss"]))
     energy_gain_list.sort(key=lambda x: x["rate"], reverse=True)
 
+    print("offer_to_energy:")
     for i in range(len(energy_gain_list)):
         x = energy_gain_list[i]
         print_trade(x, "offer", "selling_type")
         if i >= 5:
             break
 
-    print("energy_to_offer:")
+    # calculate rates for all energy_loss
     for energy_loss in energy_loss_list:
         energy_loss["rate"] = int(offer_energy_rate(offer_energy_pair[0]["energy_gain"], energy_loss))
     energy_loss_list.sort(key=lambda x: x["rate"], reverse=True)
 
+    print("energy_to_offer:")
     for i in range(len(energy_loss_list)):
         x = energy_loss_list[i]
         print_trade(x, "offer", "selling_type")
