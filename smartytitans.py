@@ -198,18 +198,16 @@ while True:
         elif item_last["tType"] == "r" or item_last["tType"] == "rs":
             offer_request[key]["request"] = item_last
 
-    # find gem_to_gold_rates
+    # find gold-to-gem rates
     gem_to_gold_rates = []
     gold_to_gem_rates = []
-
-    offer_energy_list = []
-    gold_to_gem_rate_estimated = 4000000
     for (key, data) in offer_request.items():
-        (uid, quality) = key
+        if "offer" not in data or "request" not in data:
+            continue
 
+        (uid, quality) = key
         # get item info
         if uid not in items_info:
-            # print("uid \"", uid, "\" is not found in the file \"items.json\".", sep="")
             continue
 
         item_info = items_info[uid]
@@ -219,12 +217,93 @@ while True:
         item_name = item_info["chinese_name"]
         # print(item_type, item_tier, chinese_quality, item_name)
 
-        # offer-energy pair
+        # offer_gold < request_gold
+        if data["offer"]["goldPrice"] != None and data["request"]["goldPrice"] != None:
+            if data["offer"]["goldPrice"] < data["request"]["goldPrice"]:
+                # print("offer_gold < request_gold:", item_name, chinese_quality, data)
+                pass
+
+        # offer_gems < request_gems
+        if data["offer"]["gemsPrice"] != None and data["request"]["gemsPrice"] != None:
+            if data["offer"]["gemsPrice"] < data["request"]["gemsPrice"]:
+                # print("offer_gems < request_gems:", item_name, chinese_quality, data)
+                pass
+
+        template = {"type": item_type,
+                    "tier": item_tier,
+                    "quality": chinese_quality,
+                    "name": item_name
+                    }
+
+        # gold to gem rate
+        if data["offer"]["goldPrice"] != None and data["request"]["gemsPrice"] != None:
+            trade = copy.deepcopy(template)
+            trade["offer_gold"] = data["offer"]["goldPrice"]
+            trade["request_gems"] = data["request"]["gemsPrice"]
+            trade["rate"] = int(data["offer"]["goldPrice"]/data["request"]["gemsPrice"])
+            trade["offer_gold_t"] = datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
+            trade["request_gems_t"] = datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
+            gold_to_gem_rates.append(trade)
+
+        # gem to gold rate
+        if data["offer"]["gemsPrice"] != None and data["request"]["goldPrice"] != None:
+            trade = copy.deepcopy(template)
+            trade["offer_gems"] = data["offer"]["gemsPrice"]
+            trade["request_gold"] = data["request"]["goldPrice"]
+            trade["rate"] = int(data["request"]["goldPrice"]/data["offer"]["gemsPrice"])
+            trade["offer_gems_t"] = datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
+            trade["request_gold_t"] = datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
+            gem_to_gold_rates.append(trade)
+
+    gold_to_gem_rates.sort(key=lambda x: x["rate"])
+    gem_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
+
+    if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
+        print("No gem_to_gold is found.")
+        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold")
+        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems")
+    else:
+        print("gold_to_gem_rates:")
+        for i in range(len(gold_to_gem_rates)):
+            if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
+                x = gold_to_gem_rates[i]
+                # print(gold_to_gem_rates[i])
+                print_trade(x, "offer_gold", "request_gems")
+            if i >= 5:
+                break
+
+        print("gem_to_gold_rates:")
+        for i in range(len(gem_to_gold_rates)):
+            if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
+                x = gem_to_gold_rates[i]
+                # print(gem_to_gold_rates[i])
+                print_trade(x, "offer_gems", "request_gold")
+            if i >= 5:
+                break
+    print()
+
+    # offer-energy pair
+    offer_energy_list = []
+    gold_to_gem_rate_estimated = 4000000
+    for (key, data) in offer_request.items():
+        (uid, quality) = key
+
+        # get item info
+        if uid not in items_info:
+            continue
+
+        item_info = items_info[uid]
+        item_type = item_info["chinese_type"]
+        item_tier = item_info["tier"]
+        chinese_quality = data["chinese_quality"]
+        item_name = item_info["chinese_name"]
+        # print(item_type, item_tier, chinese_quality, item_name)
+
         if item_info["type"] != "xu" and \
-           item_info["type"] != "xm" and \
-           item_info["type"] != "z" and \
-           item_info["type"] != "m" and \
-           item_info["type"] != "chest":
+                item_info["type"] != "xm" and \
+                item_info["type"] != "z" and \
+                item_info["type"] != "m" and \
+                item_info["type"] != "chest":
             # get item value
             item_value = get_item_value(item_info, quality)
 
@@ -279,48 +358,6 @@ while True:
                     trade["energy_change"] = -item_info["surcharge"] + energy_per_sale
                     offer_energy_list.append(trade)
 
-        if "offer" not in data or "request" not in data:
-            continue
-
-        # offer_gold < request_gold
-        if data["offer"]["goldPrice"] != None and data["request"]["goldPrice"] != None:
-            if data["offer"]["goldPrice"] < data["request"]["goldPrice"]:
-                # print("offer_gold < request_gold:", item_name, chinese_quality, data)
-                pass
-
-        # offer_gems < request_gems
-        if data["offer"]["gemsPrice"] != None and data["request"]["gemsPrice"] != None:
-            if data["offer"]["gemsPrice"] < data["request"]["gemsPrice"]:
-                # print("offer_gems < request_gems:", item_name, chinese_quality, data)
-                pass
-
-        template = {"type": item_type,
-                    "tier": item_tier,
-                    "quality": chinese_quality,
-                    "name": item_name
-                    }
-
-        # gold to gem rate
-        if data["offer"]["goldPrice"] != None and data["request"]["gemsPrice"] != None:
-            trade = copy.deepcopy(template)
-            trade["offer_gold"] = data["offer"]["goldPrice"]
-            trade["request_gems"] = data["request"]["gemsPrice"]
-            trade["rate"] = int(data["offer"]["goldPrice"]/data["request"]["gemsPrice"])
-            trade["offer_gold_t"] = datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
-            trade["request_gems_t"] = datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
-            gold_to_gem_rates.append(trade)
-
-        # gem to gold rate
-        if data["offer"]["gemsPrice"] != None and data["request"]["goldPrice"] != None:
-            trade = copy.deepcopy(template)
-            trade["offer_gems"] = data["offer"]["gemsPrice"]
-            trade["request_gold"] = data["request"]["goldPrice"]
-            trade["rate"] = int(data["request"]["goldPrice"]/data["offer"]["gemsPrice"])
-            trade["offer_gems_t"] = datetime.now(timezone.utc) - parser.parse(data["offer"]["updatedAt"])
-            trade["request_gold_t"] = datetime.now(timezone.utc) - parser.parse(data["request"]["updatedAt"])
-            gem_to_gold_rates.append(trade)
-
-    # offer-energy pair
     # divide offer_energy_list into two lists
     energy_loss_list = []
     energy_gain_list = []
@@ -409,34 +446,6 @@ while True:
         print_trade(x, "offer", "selling_type")
         if i >= 10:
             break
-    print()
-
-    # gold-to-gem rates
-    gold_to_gem_rates.sort(key=lambda x: x["rate"])
-    gem_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
-
-    if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
-        print("No gem_to_gold is found.")
-        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold")
-        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems")
-    else:
-        print("gold_to_gem_rates:")
-        for i in range(len(gold_to_gem_rates)):
-            if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
-                x = gold_to_gem_rates[i]
-                # print(gold_to_gem_rates[i])
-                print_trade(x, "offer_gold", "request_gems")
-            if i >= 5:
-                break
-
-        print("gem_to_gold_rates:")
-        for i in range(len(gem_to_gold_rates)):
-            if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
-                x = gem_to_gold_rates[i]
-                # print(gem_to_gold_rates[i])
-                print_trade(x, "offer_gems", "request_gold")
-            if i >= 5:
-                break
     print()
 
     # request item for energy
