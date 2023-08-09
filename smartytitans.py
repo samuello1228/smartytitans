@@ -159,6 +159,13 @@ def compare_gold_energy(x, y, gold_change, energy_change):
         return 0
 
 
+def insert(List, y):
+    for x in List:
+        if compare_gold_energy(x, y, "currency_change", "energy_change") > 0:
+            return False
+    return True
+
+
 while True:
     # get all market data
     response_last = requests.get("https://smartytitans.com/api/item/last/all")
@@ -317,6 +324,8 @@ while True:
     # divide offer_energy_list into two lists
     energy_loss_list = []
     energy_gain_list = []
+    energy_loss_boundary = []
+    energy_gain_boundary = []
     for x in offer_energy_list:
         # energy_gain
         if x["energy_change"] > 0:
@@ -324,15 +333,21 @@ while True:
             x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
             energy_gain_list.append(x)
 
+            if insert(energy_gain_boundary, x):
+                energy_gain_boundary.append(x)
+
         # energy_loss
         if x["energy_change"] < 0 and x["currency_change"] > 0:
             x["energy_change_t"] = timedelta(seconds=0)
             x["energy_rate"] = int(-x["currency_change"]/x["energy_change"])
             energy_loss_list.append(x)
 
+            if insert(energy_loss_boundary, x):
+                energy_loss_boundary.append(x)
+
     offer_energy_pair = []
-    for energy_gain in energy_gain_list:
-        for energy_loss in energy_loss_list:
+    for energy_gain in energy_gain_boundary:
+        for energy_loss in energy_loss_boundary:
             rate = offer_energy_rate(energy_gain, energy_loss)
             offer_energy_pair.append({"energy_gain": energy_gain,
                                       "energy_loss": energy_loss,
