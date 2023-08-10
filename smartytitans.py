@@ -90,14 +90,14 @@ energy_per_sale = 40
 surcharge_tier = 12
 
 
-def print_trade(x, key1, key2):
+def print_trade(x, key1, key2, key3):
     print(x["type"], ", ",
           x["tier"], ", ",
           x["quality"], ", ",
           x["name"], ": ",
           key1 + ": ", x[key1], ", ",
           key2 + ": ", x[key2], ", ",
-          "rate: ", x["rate"], " (",
+          key3 + ": ", x[key3], " (",
           x[key1 + "_t"].seconds//60, ",",
           x[key2 + "_t"].seconds//60, " mins ago)",
           sep="")
@@ -255,14 +255,14 @@ while True:
 
     if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
         print("No gem_to_gold is found.")
-        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold")
-        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems")
+        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold", "rate")
+        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems", "rate")
     else:
         print("gold_to_gem_rates:")
         for i in range(len(gold_to_gem_rates)):
             if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
                 x = gold_to_gem_rates[i]
-                print_trade(x, "offer_gold", "request_gems")
+                print_trade(x, "offer_gold", "request_gems", "rate")
             if i >= 5:
                 break
 
@@ -270,7 +270,7 @@ while True:
         for i in range(len(gem_to_gold_rates)):
             if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
                 x = gem_to_gold_rates[i]
-                print_trade(x, "offer_gems", "request_gold")
+                print_trade(x, "offer_gems", "request_gold", "rate")
             if i >= 5:
                 break
     print()
@@ -417,7 +417,7 @@ while True:
     print("offer_to_energy:")
     for i in range(len(energy_gain_list)):
         x = energy_gain_list[i]
-        print_trade(x, "offer", "selling_type")
+        print_trade(x, "offer", "selling_type", "energy_rate")
         if i >= 5:
             break
 
@@ -429,7 +429,7 @@ while True:
     print("energy_to_offer:")
     for i in range(len(energy_loss_list)):
         x = energy_loss_list[i]
-        print_trade(x, "offer", "selling_type")
+        print_trade(x, "offer", "selling_type", "energy_rate")
         if i >= 10:
             break
     print()
