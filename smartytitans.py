@@ -249,28 +249,6 @@ while True:
     gold_to_gem_rates.sort(key=lambda x: x["rate"])
     gem_to_gold_rates.sort(key=lambda x: x["rate"], reverse=True)
 
-    if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
-        print("No gem_to_gold is found.")
-        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold", "rate")
-        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems", "rate")
-    else:
-        print("gold_to_gem_rates:")
-        for i in range(len(gold_to_gem_rates)):
-            if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
-                x = gold_to_gem_rates[i]
-                print_trade(x, "offer_gold", "request_gems", "rate")
-            if i >= 5:
-                break
-
-        print("gem_to_gold_rates:")
-        for i in range(len(gem_to_gold_rates)):
-            if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
-                x = gem_to_gold_rates[i]
-                print_trade(x, "offer_gems", "request_gold", "rate")
-            if i >= 5:
-                break
-    print()
-
     # offer-energy pair
     offer_energy_list = []
     gold_to_gem_rate_estimated = 4000000
@@ -398,17 +376,41 @@ while True:
         energy_gain["rate"] = int(offer_energy_rate(energy_gain, offer_energy_pair[0]["energy_loss"]))
     energy_gain_list.sort(key=lambda x: x["rate"], reverse=True)
 
+    # calculate rates for all energy_loss
+    for energy_loss in energy_loss_list:
+        energy_loss["rate"] = int(offer_energy_rate(offer_energy_pair[0]["energy_gain"], energy_loss))
+    energy_loss_list.sort(key=lambda x: x["rate"], reverse=True)
+
+    # print gem_to_gold
+    if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
+        print("No gem_to_gold is found.")
+        print_trade(gem_to_gold_rates[0], "offer_gems", "request_gold", "rate")
+        print_trade(gold_to_gem_rates[0], "offer_gold", "request_gems", "rate")
+    else:
+        print("gold_to_gem_rates:")
+        for i in range(len(gold_to_gem_rates)):
+            if gold_to_gem_rates[i]["rate"] < gem_to_gold_rates[0]["rate"]:
+                x = gold_to_gem_rates[i]
+                print_trade(x, "offer_gold", "request_gems", "rate")
+            if i >= 5:
+                break
+
+        print("gem_to_gold_rates:")
+        for i in range(len(gem_to_gold_rates)):
+            if gem_to_gold_rates[i]["rate"] > gold_to_gem_rates[0]["rate"]:
+                x = gem_to_gold_rates[i]
+                print_trade(x, "offer_gems", "request_gold", "rate")
+            if i >= 5:
+                break
+    print()
+
+    # print offer-energy
     print("offer_to_energy:")
     for i in range(len(energy_gain_list)):
         x = energy_gain_list[i]
         print_trade(x, "offer", "selling_type", "energy_rate")
         if i >= 5:
             break
-
-    # calculate rates for all energy_loss
-    for energy_loss in energy_loss_list:
-        energy_loss["rate"] = int(offer_energy_rate(offer_energy_pair[0]["energy_gain"], energy_loss))
-    energy_loss_list.sort(key=lambda x: x["rate"], reverse=True)
 
     print("energy_to_offer:")
     for i in range(len(energy_loss_list)):
