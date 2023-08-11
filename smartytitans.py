@@ -57,20 +57,20 @@ print(response_items.status_code)
 items_info = response_items.json()
 
 # add chest items
-items_info["chest_forest"] = {'uid': "chest_forest", "type": "chest", "tier": 1}
-items_info["chest_grotto"] = {"uid": "chest_grotto", "type": "chest", "tier": 2}
-items_info["chest_swamp"] = {"uid": "chest_swamp", "type": "chest", "tier": 3}
-items_info["chest_desert"] = {"uid": "chest_desert", "type": "chest", "tier": 4}
-items_info["chest_pyramid"] = {"uid": "chest_pyramid", "type": "chest", "tier": 5}
-items_info["chest_ruins"] = {"uid": "chest_ruins", "type": "chest", "tier": 6}
-items_info["chest_castle"] = {"uid": "chest_castle", "type": "chest", "tier": 7}
-items_info["chest_temple"] = {"uid": "chest_temple", "type": "chest", "tier": 8}
-items_info["chest_peak"] = {"uid": "chest_peak", "type": "chest", "tier": 9}
-items_info["chest_volcano"] = {"uid": "chest_volcano", "type": "chest", "tier": 10}
-items_info["chest_rift"] = {"uid": "chest_rift", "type": "chest", "tier": 11}
-items_info["chest_goldcity"] = {"uid": "chest_goldcity", "type": "chest", "tier": 7}
-items_info["chest_goldcity2"] = {"uid": "chest_goldcity2", "type": "chest", "tier": 10}
-items_info["chest_goldcity3"] = {"uid": "chest_goldcity3", "type": "chest", "tier": 11}
+items_info["chest_forest"] = {'uid': "chest_forest", "type": "chest", "tier": 1, "tradeMinMaxValue": "200;10000"}
+items_info["chest_grotto"] = {"uid": "chest_grotto", "type": "chest", "tier": 2, "tradeMinMaxValue": "1000;50000"}
+items_info["chest_swamp"] = {"uid": "chest_swamp", "type": "chest", "tier": 3, "tradeMinMaxValue": "10000;500000"}
+items_info["chest_desert"] = {"uid": "chest_desert", "type": "chest", "tier": 4, "tradeMinMaxValue": "20000;1000000"}
+items_info["chest_pyramid"] = {"uid": "chest_pyramid", "type": "chest", "tier": 5, "tradeMinMaxValue": "50000;2500000"}
+items_info["chest_ruins"] = {"uid": "chest_ruins", "type": "chest", "tier": 6, "tradeMinMaxValue": "100000;5000000"}
+items_info["chest_castle"] = {"uid": "chest_castle", "type": "chest", "tier": 7, "tradeMinMaxValue": "150000;7500000"}
+items_info["chest_temple"] = {"uid": "chest_temple", "type": "chest", "tier": 8, "tradeMinMaxValue": "200000;10000000"}
+items_info["chest_peak"] = {"uid": "chest_peak", "type": "chest", "tier": 9, "tradeMinMaxValue": "400000;20000000"}
+items_info["chest_volcano"] = {"uid": "chest_volcano", "type": "chest", "tier": 10, "tradeMinMaxValue": "800000;40000000"}
+items_info["chest_rift"] = {"uid": "chest_rift", "type": "chest", "tier": 11, "tradeMinMaxValue": "2000000;100000000"}
+items_info["chest_goldcity"] = {"uid": "chest_goldcity", "type": "chest", "tier": 7, "tradeMinMaxValue": "50000;2500000"}
+items_info["chest_goldcity2"] = {"uid": "chest_goldcity2", "type": "chest", "tier": 10, "tradeMinMaxValue": "500000;25000000"}
+items_info["chest_goldcity3"] = {"uid": "chest_goldcity3", "type": "chest", "tier": 11, "tradeMinMaxValue": "2000000;100000000"}
 
 # get chinese name for each item
 for (item_name, item_data) in items_info.items():
