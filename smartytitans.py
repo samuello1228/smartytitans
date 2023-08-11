@@ -167,6 +167,26 @@ def insert(List, y):
     return True
 
 
+def erase_duplicated_item(List):
+    i = 0
+    while True:
+        if i >= len(List):
+            break
+
+        isFound = False
+        for j in range(i):
+            if List[j]["trade_data"]["item_info"]["uid"] == List[i]["trade_data"]["item_info"]["uid"] and \
+               List[j]["trade_data"]["quality"] == List[i]["trade_data"]["quality"]:
+                isFound = True
+                break
+
+        if isFound:
+            del List[i]
+            # print(List)
+        else:
+            i += 1
+
+
 while True:
     # get all market data
     response_last = requests.get("https://smartytitans.com/api/item/last/all")
@@ -191,6 +211,9 @@ while True:
 
         # set item_info
         offer_request[key]["item_info"] = items_info[item_last["uid"]]
+
+        # set quality
+        offer_request[key]["quality"] = item_last["tag1"]
 
         # set chinese_quality
         if item_last["tag1"] == None:
@@ -380,6 +403,12 @@ while True:
     for energy_loss in energy_loss_list:
         energy_loss["rate"] = int(offer_energy_rate(offer_energy_pair[0]["energy_gain"], energy_loss))
     energy_loss_list.sort(key=lambda x: x["rate"], reverse=True)
+
+    # remove some unused entries
+    energy_gain_list = [x for x in energy_gain_list if x["energy_rate"] < energy_to_offer_rate]
+    erase_duplicated_item(energy_gain_list)
+    energy_loss_list = [x for x in energy_loss_list if x["energy_rate"] > offer_to_energy_rate]
+    erase_duplicated_item(energy_loss_list)
 
     # print gem_to_gold
     if gem_to_gold_rates[0]["rate"] < gold_to_gem_rates[0]["rate"]:
