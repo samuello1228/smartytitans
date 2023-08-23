@@ -364,35 +364,8 @@ while True:
                                       "rate": rate,
                                       })
     offer_energy_pair.sort(key=lambda x: x["rate"], reverse=True)
-
-    print("offer-to-energy:")
     offer_to_energy_rate = offer_energy_pair[0]["energy_gain"]["energy_rate"]
     energy_to_offer_rate = offer_energy_pair[0]["energy_loss"]["energy_rate"]
-    print("offer_to_energy_rate:", offer_to_energy_rate)
-    print("energy_to_offer_rate:", energy_to_offer_rate)
-    for i in range(len(offer_energy_pair)):
-        if i >= 1:
-            break
-
-        x = offer_energy_pair[i]
-        print("rate: ", int(x["rate"]), ": ",
-              x["energy_gain"]["trade_data"]["item_info"]["chinese_type"], ", ",
-              x["energy_gain"]["trade_data"]["item_info"]["tier"], ", ",
-              x["energy_gain"]["trade_data"]["chinese_quality"], ", ",
-              x["energy_gain"]["trade_data"]["item_info"]["chinese_name"], ", ",
-              x["energy_gain"]["offer"], ", ",
-              x["energy_gain"]["energy_rate"], "; ",
-
-              x["energy_loss"]["trade_data"]["item_info"]["chinese_type"], ", ",
-              x["energy_loss"]["trade_data"]["item_info"]["tier"], ", ",
-              x["energy_loss"]["trade_data"]["chinese_quality"], ", ",
-              x["energy_loss"]["trade_data"]["item_info"]["chinese_name"], ", ",
-              x["energy_loss"]["offer"], ", ",
-              x["energy_loss"]["energy_rate"], " (",
-
-              x["energy_gain"]["offer_t"].seconds//60, ",",
-              x["energy_loss"]["offer_t"].seconds//60, " mins ago)",
-              sep="")
 
     # calculate rates for all energy_gain
     for energy_gain in energy_gain_list:
@@ -434,6 +407,33 @@ while True:
     print()
 
     # print offer-energy
+    print("offer-to-energy:")
+    print("offer_to_energy_rate:", offer_to_energy_rate)
+    print("energy_to_offer_rate:", energy_to_offer_rate)
+    for i in range(len(offer_energy_pair)):
+        if i >= 1:
+            break
+
+        x = offer_energy_pair[i]
+        print("rate: ", int(x["rate"]), ": ",
+              x["energy_gain"]["trade_data"]["item_info"]["chinese_type"], ", ",
+              x["energy_gain"]["trade_data"]["item_info"]["tier"], ", ",
+              x["energy_gain"]["trade_data"]["chinese_quality"], ", ",
+              x["energy_gain"]["trade_data"]["item_info"]["chinese_name"], ", ",
+              x["energy_gain"]["offer"], ", ",
+              x["energy_gain"]["energy_rate"], "; ",
+
+              x["energy_loss"]["trade_data"]["item_info"]["chinese_type"], ", ",
+              x["energy_loss"]["trade_data"]["item_info"]["tier"], ", ",
+              x["energy_loss"]["trade_data"]["chinese_quality"], ", ",
+              x["energy_loss"]["trade_data"]["item_info"]["chinese_name"], ", ",
+              x["energy_loss"]["offer"], ", ",
+              x["energy_loss"]["energy_rate"], " (",
+
+              x["energy_gain"]["offer_t"].seconds//60, ",",
+              x["energy_loss"]["offer_t"].seconds//60, " mins ago)",
+              sep="")
+
     print("offer_to_energy:")
     for i in range(len(energy_gain_list)):
         x = energy_gain_list[i]
