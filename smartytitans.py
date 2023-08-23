@@ -2,7 +2,7 @@ import requests
 from datetime import datetime, timezone, timedelta
 from dateutil import parser
 import copy
-
+from blueprints import blueprints
 import time
 
 # get chinese translation
@@ -134,13 +134,27 @@ quality_to_int = {None: 0,
                   "legendary": 4}
 
 
-def get_item_value(item_info, quality):
+def get_item_value(item_info, quality, isCustomer):
     quality_index = quality_to_int[quality]
-    item_max_value = item_info["tradeMinMaxValue"].split(";")
-    item_max_value = item_max_value[1].split(",")
-    item_max_value = int(item_max_value[quality_index])
-    item_value = int(item_max_value/10)
-    return item_value
+    item_max_values = item_info["tradeMinMaxValue"].split(";")
+    item_max_values = item_max_values[1].split(",")
+
+    item_max_value_normal = int(item_max_values[0])
+    item_value_normal = int(item_max_value_normal/10)
+
+    item_max_value_quality = int(item_max_values[quality_index])
+    item_value_quality = int(item_max_value_quality/10)
+
+    ratio = item_value_quality/item_value_normal
+
+    if isCustomer and item_info["type"] != "chest":
+        uid = item_info["uid"]
+        if uid in blueprints and blueprints[uid]["crafting_upgrade"] == 5:
+            return item_value_quality
+        else:
+            return item_info["value"] * ratio
+    else:
+        return item_value_quality
 
 
 # request items for energy
@@ -246,7 +260,7 @@ while True:
             offer_request[key]["chinese_quality"] = translation["texts"][item_last["tag1"] + "_name"]
 
         # set item_value
-        offer_request[key]["item_value"] = get_item_value(items_info[item_last["uid"]], item_last["tag1"])
+        offer_request[key]["item_value"] = get_item_value(items_info[item_last["uid"]], item_last["tag1"], isCustomer=True)
 
         # grouping
         if item_last["tType"] == "o" or item_last["tType"] == "os":
@@ -480,7 +494,7 @@ while True:
         item_type = item_info["chinese_type"]
         item_tier = item_info["tier"]
         item_name = item_info["chinese_name"]
-        item_value = get_item_value(item_info, None)
+        item_value = get_item_value(item_info, None, isCustomer=False)
 
         if (uid, None) in offer_request:
             data = offer_request[(uid, None)]
