@@ -228,10 +228,10 @@ while True:
             offer_request[key] = {}
 
         # set price to None, if Qty is 0
-        if item_last['goldQty'] == 0:
-            item_last['goldPrice'] = None
-        if item_last['gemsQty'] == 0:
-            item_last['gemsPrice'] = None
+        if item_last["goldQty"] == 0:
+            item_last["goldPrice"] = None
+        if item_last["gemsQty"] == 0:
+            item_last["gemsPrice"] = None
 
         # set item_info
         offer_request[key]["item_info"] = items_info[item_last["uid"]]
