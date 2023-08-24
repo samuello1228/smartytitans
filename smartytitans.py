@@ -416,9 +416,9 @@ while True:
     energy_loss_list.sort(key=lambda x: x["rate"], reverse=True)
 
     # remove some unused entries
-    energy_gain_list = [x for x in energy_gain_list if x["energy_rate"] < energy_to_offer_rate]
+    energy_gain_list = [x for x in energy_gain_list if x["rate"] > 0]
     erase_duplicated_item(energy_gain_list)
-    energy_loss_list = [x for x in energy_loss_list if x["energy_rate"] > offer_to_energy_rate]
+    energy_loss_list = [x for x in energy_loss_list if x["rate"] > 0]
     erase_duplicated_item(energy_loss_list)
 
     # print gem_to_gold
